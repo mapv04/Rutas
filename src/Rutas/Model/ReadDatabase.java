@@ -63,31 +63,5 @@ public class ReadDatabase {
         return matriz;
     }
 
-    public static String[][] getMatrizMTiempo() {
-        String sql ="select * from matriz_tiempo;";
-        String[][] matriz = new String[32][32];
-        try {
-            preparedStatement = conn.prepareStatement(sql);
-            rs = preparedStatement.executeQuery();
-            int cont = 1;
-            for(int i =0; i<matriz.length; i++){
-                matriz[0][i] = String.valueOf(i);
-            }
-            for(int i = 0;i<matriz.length;i++){
-                matriz[i][0] = String.valueOf(i);
-            }
-            while(rs.next()){
-
-                for(int j =1; j<matriz.length;j++){
-                    matriz[cont][j] = rs.getString(j+1);
-                }
-                cont++;
-            }
-        } catch (SQLException e) {
-            System.out.println("ERROR in sql statement. method getMatrizMTiempo  error: "+e);;
-        }
-        return matriz;
-    }
-
 
 }
