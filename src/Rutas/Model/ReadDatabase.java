@@ -63,5 +63,34 @@ public class ReadDatabase {
         return matriz;
     }
 
+    public static int[][] getMatrizMAerea() {
+        String sql ="select * from matriz_distancia_avion;";
+        int[][] matriz = new int[32][32];
+        try {
+            preparedStatement = conn.prepareStatement(sql);
+
+            rs = preparedStatement.executeQuery();
+            int cont = 1;
+            for(int i =0; i<matriz.length; i++){
+                matriz[0][i] = i;
+            }
+            for(int i = 0;i<matriz.length;i++){
+                matriz[i][0] = i;
+            }
+            while (rs.next()) {
+
+                for (int j = 1; j < matriz.length; j++) {
+
+                    matriz[cont][j] = rs.getInt(j+1);
+
+                }
+                cont++;
+            }
+        } catch (SQLException e) {
+            System.out.println("ERROR in sql statement. method getMatrizM  error: "+e);
+        }
+        return matriz;
+    }
+
 
 }

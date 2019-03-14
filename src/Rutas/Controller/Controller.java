@@ -38,27 +38,36 @@ public class Controller implements Initializable {
     private Button mBuscar;
 
     List<Estado> listaEstados;
+
     int[][] matrizMDistancia;
     int[][] matrizTDistancia;
     int[][] matrizMTiempo;
     int[][] matrizTTiempo;
 
+    int[][] matrizMDistanciaAerea;
+    int[][] matrizTDistanciaAerea;
+    int[][] matrizMTiempoAerea;
+    int[][] matrizTTiempoAerea;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         getEstados();
+        /*TERRESTRE*/
         matrizMDistancia = ReadDatabase.getMatrizM();
-        imprimirMatriz(matrizMDistancia);
-        matrizMTiempo = getMatrizMTiempo(matrizMDistancia);
-        imprimirMatriz(matrizMTiempo);
-
+        matrizMTiempo = getMatrizMTiempo(matrizMDistancia, 90);
         matrizTDistancia = llenarMatriz99();
         matrizTTiempo = llenarMatriz99();
-
         matrizTDistancia = floyd(matrizMDistancia, matrizTDistancia);
-        imprimirMatriz(matrizTDistancia);
-
         matrizTTiempo = floydTiempo(matrizMTiempo, matrizTTiempo);
-        imprimirMatriz(matrizTTiempo);
+
+        /*AEREA*/
+        matrizMDistanciaAerea = ReadDatabase.getMatrizMAerea();
+        matrizMTiempoAerea = getMatrizMTiempo(matrizMDistanciaAerea, 940);
+        matrizTDistanciaAerea = llenarMatriz99();
+        matrizTTiempoAerea = llenarMatriz99();
+        matrizTDistanciaAerea = floyd(matrizMDistanciaAerea, matrizTDistanciaAerea);
+        matrizTTiempoAerea = floydTiempo(matrizMTiempoAerea, matrizTTiempoAerea);
+
     }
 
     public void getEstados(){
@@ -253,7 +262,7 @@ public class Controller implements Initializable {
     }
 
 
-    public static int[][] getMatrizMTiempo(int[][] matrizDistancia){
+    public static int[][] getMatrizMTiempo(int[][] matrizDistancia, int division){
         int[][] matrizMTiempo = new int[32][32];
         for(int i =0; i<matrizDistancia.length; i++){
             matrizMTiempo[0][i] = i;
@@ -265,7 +274,7 @@ public class Controller implements Initializable {
             for(int j=1;j<matrizDistancia.length;j++){
                 if(matrizDistancia[i][j] != 9999999){
                     int valor = matrizDistancia[i][j];
-                    matrizMTiempo[i][j] = convertirDistanciaSegundos(matrizDistancia[i][j]);
+                    matrizMTiempo[i][j] = convertirDistanciaSegundos(matrizDistancia[i][j], division);
                 }else{
                     matrizMTiempo[i][j] = 9999999;
                 }
@@ -274,8 +283,8 @@ public class Controller implements Initializable {
         return matrizMTiempo;
     }
 
-    public static int convertirDistanciaSegundos(int distancia){
-        float tiempo = (float) distancia / 90;
+    public static int convertirDistanciaSegundos(int distancia, int division){
+        float tiempo = (float) distancia / division;
         return Math.round( tiempo * 3600);
     }
 
