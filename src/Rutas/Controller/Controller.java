@@ -1,7 +1,6 @@
 package Rutas.Controller;
 
-import Rutas.Model.Estado;
-import Rutas.Model.ReadDatabase;
+import Rutas.Model.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -49,6 +48,9 @@ public class Controller implements Initializable {
     int[][] matrizMTiempoAerea;
     int[][] matrizTTiempoAerea;
 
+    int[][] matrizMComiinadaDistancia;
+    int[][] matrizTCombinadaDistancia;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         getEstados();
@@ -67,6 +69,13 @@ public class Controller implements Initializable {
         matrizTTiempoAerea = llenarMatriz99();
         matrizTDistanciaAerea = floyd(matrizMDistanciaAerea, matrizTDistanciaAerea);
         matrizTTiempoAerea = floydTiempo(matrizMTiempoAerea, matrizTTiempoAerea);
+
+        matrizMComiinadaDistancia = ReadDatabase.getMatrizM();
+        matrizMComiinadaDistancia = combinarMatrices(ReadDatabase.getMatrizM(), ReadDatabase.getMatrizMAerea(), matrizMComiinadaDistancia);
+        matrizTCombinadaDistancia = llenarMatriz99();
+        matrizTCombinadaDistancia = floyd(matrizMComiinadaDistancia, matrizTCombinadaDistancia);
+        imprimirMatriz(matrizMComiinadaDistancia);
+        imprimirMatriz(matrizTCombinadaDistancia);
 
     }
 
@@ -92,7 +101,7 @@ public class Controller implements Initializable {
                 int idDestino = getIdEstado(destino);
                 switch (radio.getText()) {
                     case "Ruta mas corta":
-                        getRutaCorta(matrizTDistancia, idOrigen, idDestino);
+                        List<Ruta> ruta = getRutaCorta(idOrigen, idDestino);
                         break;
                     case "Ruta mas rapida":
                         getRutaRapida(matrizTTiempo, idOrigen, idDestino);
@@ -124,43 +133,76 @@ public class Controller implements Initializable {
         return 99;
     }
 
-    private Queue<Integer> getRutaCorta(int[][] matrizT, int idOrigen, int idDestino){
+    private List<Ruta> getRutaCorta(int idOrigen, int idDestino) {
+        int idDestinoO = idDestino;
+        int idOrigenO = idOrigen;
+       Queue<Integer> cola = getRutaDistancia(idOrigen, idDestino);
+        ((LinkedList<Integer>) cola).addFirst(idOrigenO);
+        ((LinkedList<Integer>) cola).addLast(idDestinoO);
+        imprimirCola(cola);
+        List<Ruta> ruta = armarRuta(cola);
+
+        return ruta;
+    }
+
+
+    private Queue<Integer> getRutaDistancia(int idOrigen, int idDestino){
         Stack<Integer> pila = new Stack<>();
-        Stack<Integer> ruta = new Stack<>();
         Queue<Integer> cola = new LinkedList<>();
         int idTemporal = idOrigen;
         int idDestinoO = idDestino;
         boolean salir = false;
         pila.push(idDestino);
-        ruta.push(idDestino);
-        while(!salir){
-            if(matrizT[idTemporal][idDestino] != 9999999){
-                pila.push(matrizT[idTemporal][idDestino]);
-                idDestino = matrizT[idTemporal][idDestino];
-            }
-            else{
+        while (!salir) {
+            if (matrizTCombinadaDistancia[idTemporal][idDestino] != 9999999) {
+                pila.push(matrizTCombinadaDistancia[idTemporal][idDestino]);
+                idDestino = matrizTCombinadaDistancia[idTemporal][idDestino];
+            } else {
                 idTemporal = idDestino;
-                if(!pila.isEmpty()) {
-                    if (idTemporal == idDestinoO){
+                if (!pila.isEmpty()) {
+                    if (idTemporal == idDestinoO) {
                         salir = true;
-                    }
-                    else{
-                        if(idTemporal == pila.peek()) {
+                    } else {
+                        if (idTemporal == pila.peek()) {
                             cola.add(pila.pop());
                             idDestino = pila.peek();
                         }
                     }
-                }else salir =true;
+                } else salir = true;
             }
         }
-        ((LinkedList<Integer>) cola).addFirst(idOrigen);
-        ((LinkedList<Integer>) cola).addLast(idDestinoO);
-        while(!cola.isEmpty()){
-            System.out.println(cola.poll());
-        }
-        System.out.println();
+
         return cola;
     }
+
+    private List<Ruta> armarRuta(Queue<Integer> cola){
+        List<Ruta> ruta = new ArrayList<>();
+        while(!cola.isEmpty() && cola.size() >= 2){
+            int idOrigen = cola.poll();
+            if(wichMatriz(idOrigen, cola.peek())){
+                RutaAerea rAerea = new RutaAerea();
+                rAerea.setIdEstadoOrigen(idOrigen);
+                rAerea.setIdEstadoDestino(cola.peek());
+                rAerea.setTiempo(matrizMTiempoAerea[idOrigen][cola.peek()]);
+                rAerea.setDistancia(matrizMDistanciaAerea[idOrigen][cola.peek()]);
+                ruta.add(rAerea);
+            }
+            else{
+                RutaTerrestre rTerrestre = new RutaTerrestre();
+                rTerrestre.setIdEstadoOrigen(idOrigen);
+                rTerrestre.setIdEstadoDestino(cola.peek());
+                rTerrestre.setTiempo(matrizMTiempo[idOrigen][cola.peek()]);
+                rTerrestre.setDistancia(matrizMDistancia[idOrigen][cola.peek()]);
+                ruta.add(rTerrestre);
+            }
+        }
+        return ruta;
+    }
+
+    private boolean wichMatriz(int idOrigen, int idDestino){//false =  TERRESTRE, true = Aerea
+        return (matrizMDistancia[idOrigen][idDestino] < matrizMDistanciaAerea[idOrigen][idDestino]) ? true : false;
+    }
+
 
     private Queue<Integer> getRutaRapida(int[][] matrizT, int idOrigen, int idDestino){
         Stack<Integer> pila = new Stack<>();
@@ -193,9 +235,9 @@ public class Controller implements Initializable {
         }
         ((LinkedList<Integer>) cola).addFirst(idOrigen);
         ((LinkedList<Integer>) cola).addLast(idDestinoO);
-        while(!cola.isEmpty()){
-            System.out.println(cola.poll());
-        }
+
+        imprimirCola(cola);
+
         return cola;
     }
 
@@ -262,7 +304,8 @@ public class Controller implements Initializable {
     }
 
 
-    public static int[][] getMatrizMTiempo(int[][] matrizDistancia, int division){
+
+    private static int[][] getMatrizMTiempo(int[][] matrizDistancia, int division){
         int[][] matrizMTiempo = new int[32][32];
         for(int i =0; i<matrizDistancia.length; i++){
             matrizMTiempo[0][i] = i;
@@ -283,9 +326,35 @@ public class Controller implements Initializable {
         return matrizMTiempo;
     }
 
-    public static int convertirDistanciaSegundos(int distancia, int division){
+    private static int convertirDistanciaSegundos(int distancia, int division){
         float tiempo = (float) distancia / division;
         return Math.round( tiempo * 3600);
+    }
+
+    private static void imprimirCola(Queue<Integer> cola){
+        for(int i : cola){
+            System.out.println(i);
+        }
+    }
+
+    private static int[][] combinarMatrices(int[][] matrizTerrestre, int[][] matrizAerea, int[][] matrizNueva){
+        for(int i =0; i<matrizNueva.length; i++){
+            matrizNueva[0][i] = i;
+        }
+        for(int i = 0;i<matrizNueva.length;i++){
+            matrizNueva[i][0] = i;
+        }
+        for(int i=1;i<matrizTerrestre.length;i++){
+            for(int j=1;j<matrizTerrestre.length;j++){
+                if(matrizAerea[i][j] < matrizTerrestre[i][j]){
+                    matrizNueva[i][j] = matrizAerea[i][j];
+                }
+                else{
+                    matrizNueva[i][j] = matrizTerrestre[i][j];
+                }
+            }
+        }
+        return matrizNueva;
     }
 
 }

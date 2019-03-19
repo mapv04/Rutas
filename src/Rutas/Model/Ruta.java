@@ -5,9 +5,9 @@ public abstract class Ruta {
     protected int idEstadoOrigen;
     protected int idEstadoDestino;
     protected String nombreRuta;
-    protected int precio;
-    protected String tiempo;
+    protected int tiempo;
     protected Tipo tipoRuta;
+    protected int distancia;
 
     public abstract int getIdEstadoOrigen();
     public abstract int getIdEstadoDestino();
@@ -20,11 +20,7 @@ public abstract class Ruta {
 
     public abstract void setIdEstadoDestino(int idEstadoDestino);
 
-    public abstract void setNombreRuta(String nombreRuta);
+    public abstract void setTiempo(int tiempo);
+    public abstract void setDistancia(int distancia);
 
-    public abstract void setPrecio(int precio);
-
-    public abstract void setTiempo(String tiempo);
-
-    public abstract void setTipoRuta(Tipo tipoRuta);
 }

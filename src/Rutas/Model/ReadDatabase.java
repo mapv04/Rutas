@@ -92,5 +92,18 @@ public class ReadDatabase {
         return matriz;
     }
 
+    public static String getAbvEstado(int idEstado){
+        String sql ="select abreviatura from estados where id_estado = ?";
+        try{
+            preparedStatement = conn.prepareStatement(sql);
+            preparedStatement.setInt(1,idEstado);
+            rs= preparedStatement.executeQuery();
+            return rs.getString(1);
+        }catch(SQLException e){
+            System.out.println("ERROR in sql statement. method getAbvEstado error: "+e);
+        }
+        return "";
+    }
+
 
 }
