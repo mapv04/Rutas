@@ -98,11 +98,30 @@ public class ReadDatabase {
             preparedStatement = conn.prepareStatement(sql);
             preparedStatement.setInt(1,idEstado);
             rs= preparedStatement.executeQuery();
-            return rs.getString(1);
+            if(rs.first()) {
+                String abv =  rs.getString(1);
+                return abv;
+            }
         }catch(SQLException e){
             System.out.println("ERROR in sql statement. method getAbvEstado error: "+e);
         }
         return "";
+    }
+
+    public static String[] getEstado(int idEstado){
+        String sql ="select nombre, nombre_capital from estados where id_estado = ?";
+        try{
+            preparedStatement = conn.prepareStatement(sql);
+            preparedStatement.setInt(1,idEstado);
+            rs= preparedStatement.executeQuery();
+            if(rs.first()) {
+                String[] estado = {rs.getString(1), rs.getString(2)};
+                return estado;
+            }
+        }catch(SQLException e){
+            System.out.println("ERROR in sql statement. method getEstado error: "+e);
+        }
+        return null;
     }
 
 

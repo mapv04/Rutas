@@ -2,8 +2,12 @@ package Rutas.Model;
 
 public class RutaAerea extends Ruta {
 
-    public RutaAerea (){
+    public RutaAerea (int idOrigen, int idDestino){
+        super.idEstadoOrigen = idOrigen;
+        super.idEstadoDestino = idDestino;
         super.tipoRuta = Tipo.AVION;
+        super.nombreEstado = getNombreEstado();
+        super.nombreCapital = getNombreCapital();
     }
 
     @Override
@@ -28,7 +32,10 @@ public class RutaAerea extends Ruta {
 
     @Override
     public String getTiempo() {
-        return "";
+        int segundos = super.tiempo;
+        int horas = segundos / 3600;
+        int minutos = ((segundos-horas*3600)/60);
+        return horas+"h "+minutos+"min";
     }
 
     @Override
@@ -37,13 +44,24 @@ public class RutaAerea extends Ruta {
     }
 
     @Override
-    public void setIdEstadoOrigen(int idEstadoOrigen) {
-        super.idEstadoOrigen = idEstadoOrigen;
+    public String getNombreEstado() {
+        return getEstado(0);
     }
 
     @Override
-    public void setIdEstadoDestino(int idEstadoDestino) {
-        super.idEstadoDestino = idEstadoDestino;
+    public String getNombreCapital() {
+        return getEstado(1);
+    }
+
+    @Override
+    public String getEstado(int opcion) {
+        String[] estado = ReadDatabase.getEstado(super.idEstadoDestino);
+        return estado[opcion];
+    }
+
+    @Override
+    public int getDistancia() {
+        return super.distancia;
     }
 
 

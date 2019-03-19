@@ -6,6 +6,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.net.URL;
 import java.util.*;
@@ -19,11 +20,9 @@ public class Controller implements Initializable {
     @FXML
     private ToggleGroup group;
     @FXML
-    private TableView<String> table;
+    private TableView<Ruta> table;
     @FXML
     private TableColumn columnRuta;
-    @FXML
-    private TableColumn columnVuelo;
     @FXML
     private TableColumn columnEstado;
     @FXML
@@ -32,50 +31,47 @@ public class Controller implements Initializable {
     private TableColumn columnTiempo;
     @FXML
     private TableColumn columnPrecio;
+    @FXML
+    private TableColumn columnDistancia;
 
     @FXML
     private Button mBuscar;
 
+    ObservableList<Ruta> rutaList;
+
     List<Estado> listaEstados;
 
     int[][] matrizMDistancia;
-    int[][] matrizTDistancia;
     int[][] matrizMTiempo;
-    int[][] matrizTTiempo;
 
     int[][] matrizMDistanciaAerea;
-    int[][] matrizTDistanciaAerea;
     int[][] matrizMTiempoAerea;
-    int[][] matrizTTiempoAerea;
 
-    int[][] matrizMComiinadaDistancia;
+    int[][] matrizMCombinadaDistancia;
     int[][] matrizTCombinadaDistancia;
+    int[][] matrizMCombinadaTiempo;
+    int[][] matrizTCombinadaTiempo;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         getEstados();
         /*TERRESTRE*/
         matrizMDistancia = ReadDatabase.getMatrizM();
-        matrizMTiempo = getMatrizMTiempo(matrizMDistancia, 90);
-        matrizTDistancia = llenarMatriz99();
-        matrizTTiempo = llenarMatriz99();
-        matrizTDistancia = floyd(matrizMDistancia, matrizTDistancia);
-        matrizTTiempo = floydTiempo(matrizMTiempo, matrizTTiempo);
+        matrizMTiempo = getMatrizMTiempo(ReadDatabase.getMatrizM(), 90);
+        matrizMCombinadaDistancia = ReadDatabase.getMatrizM();
+        matrizMCombinadaDistancia = combinarMatrices(ReadDatabase.getMatrizM(), ReadDatabase.getMatrizMAerea(), matrizMCombinadaDistancia);
+        matrizTCombinadaDistancia = llenarMatriz99();
+        matrizTCombinadaDistancia = floyd(matrizMCombinadaDistancia, matrizTCombinadaDistancia);
+        imprimirMatriz(matrizTCombinadaDistancia);
 
         /*AEREA*/
-        matrizMDistanciaAerea = ReadDatabase.getMatrizMAerea();
-        matrizMTiempoAerea = getMatrizMTiempo(matrizMDistanciaAerea, 940);
-        matrizTDistanciaAerea = llenarMatriz99();
-        matrizTTiempoAerea = llenarMatriz99();
-        matrizTDistanciaAerea = floyd(matrizMDistanciaAerea, matrizTDistanciaAerea);
-        matrizTTiempoAerea = floydTiempo(matrizMTiempoAerea, matrizTTiempoAerea);
+        matrizMDistanciaAerea = ReadDatabase.getMatrizMAerea();;
+        matrizMTiempoAerea = getMatrizMTiempo(ReadDatabase.getMatrizMAerea(), 940);
+        matrizMCombinadaTiempo = combinarMatrices(matrizMTiempo, matrizMTiempoAerea, matrizMTiempo);
+        matrizTCombinadaTiempo = llenarMatriz99();
+        matrizTCombinadaTiempo = floydTiempo(matrizMCombinadaTiempo, matrizTCombinadaTiempo);
+        imprimirMatriz(matrizTCombinadaTiempo);
 
-        matrizMComiinadaDistancia = ReadDatabase.getMatrizM();
-        matrizMComiinadaDistancia = combinarMatrices(ReadDatabase.getMatrizM(), ReadDatabase.getMatrizMAerea(), matrizMComiinadaDistancia);
-        matrizTCombinadaDistancia = llenarMatriz99();
-        matrizTCombinadaDistancia = floyd(matrizMComiinadaDistancia, matrizTCombinadaDistancia);
-        imprimirMatriz(matrizMComiinadaDistancia);
-        imprimirMatriz(matrizTCombinadaDistancia);
 
     }
 
@@ -102,9 +98,11 @@ public class Controller implements Initializable {
                 switch (radio.getText()) {
                     case "Ruta mas corta":
                         List<Ruta> ruta = getRutaCorta(idOrigen, idDestino);
+                        llenarTabla(ruta);
                         break;
                     case "Ruta mas rapida":
-                        getRutaRapida(matrizTTiempo, idOrigen, idDestino);
+                        List<Ruta> rutaRapida = getRutaRapida(idOrigen, idDestino);
+                        llenarTabla(rutaRapida);
                         break;
                 }
             } else {
@@ -123,6 +121,24 @@ public class Controller implements Initializable {
 
     }
 
+    private void llenarTabla(List<Ruta> ruta){
+        if(table.getItems().size() > 0){
+            table.getItems().clear();
+        }
+        columnRuta.setCellValueFactory(new PropertyValueFactory<>("nombreRuta"));
+        columnEstado.setCellValueFactory(new PropertyValueFactory<>("nombreEstado"));
+        columnCapital.setCellValueFactory(new PropertyValueFactory<>("nombreCapital"));
+        columnPrecio.setCellValueFactory(new PropertyValueFactory<>(""));
+        columnTiempo.setCellValueFactory(new PropertyValueFactory<>("tiempo"));
+        columnDistancia.setCellValueFactory(new PropertyValueFactory<>("distancia"));
+        rutaList = FXCollections.observableArrayList();
+        for(Ruta r : ruta){
+            rutaList.add(r);
+        }
+        table.setItems(rutaList);
+
+    }
+
 
     private int getIdEstado(String estado){
         for(Estado x : listaEstados){
@@ -137,6 +153,18 @@ public class Controller implements Initializable {
         int idDestinoO = idDestino;
         int idOrigenO = idOrigen;
        Queue<Integer> cola = getRutaDistancia(idOrigen, idDestino);
+        ((LinkedList<Integer>) cola).addFirst(idOrigenO);
+        ((LinkedList<Integer>) cola).addLast(idDestinoO);
+        imprimirCola(cola);
+        List<Ruta> ruta = armarRuta(cola);
+
+        return ruta;
+    }
+
+    private List<Ruta> getRutaRapida(int idOrigen, int idDestino){
+        int idDestinoO = idDestino;
+        int idOrigenO = idOrigen;
+        Queue<Integer> cola = getRutaTiempo(idOrigen, idDestino);
         ((LinkedList<Integer>) cola).addFirst(idOrigenO);
         ((LinkedList<Integer>) cola).addLast(idDestinoO);
         imprimirCola(cola);
@@ -175,22 +203,48 @@ public class Controller implements Initializable {
         return cola;
     }
 
+    private Queue<Integer> getRutaTiempo(int idOrigen, int idDestino){
+        Stack<Integer> pila = new Stack<>();
+        Queue<Integer> cola = new LinkedList<>();
+        int idTemporal = idOrigen;
+        int idDestinoO = idDestino;
+        boolean salir = false;
+        pila.push(idDestino);
+        while (!salir) {
+            if (matrizTCombinadaTiempo[idTemporal][idDestino] != 9999999) {
+                pila.push(matrizTCombinadaTiempo[idTemporal][idDestino]);
+                idDestino = matrizTCombinadaTiempo[idTemporal][idDestino];
+            } else {
+                idTemporal = idDestino;
+                if (!pila.isEmpty()) {
+                    if (idTemporal == idDestinoO) {
+                        salir = true;
+                    } else {
+                        if (idTemporal == pila.peek()) {
+                            cola.add(pila.pop());
+                            idDestino = pila.peek();
+                        }
+                    }
+                } else salir = true;
+            }
+        }
+
+        return cola;
+    }
+
+
     private List<Ruta> armarRuta(Queue<Integer> cola){
         List<Ruta> ruta = new ArrayList<>();
         while(!cola.isEmpty() && cola.size() >= 2){
             int idOrigen = cola.poll();
-            if(wichMatriz(idOrigen, cola.peek())){
-                RutaAerea rAerea = new RutaAerea();
-                rAerea.setIdEstadoOrigen(idOrigen);
-                rAerea.setIdEstadoDestino(cola.peek());
+            if(!wichMatriz(idOrigen, cola.peek())){
+                RutaAerea rAerea = new RutaAerea(idOrigen, cola.peek());
                 rAerea.setTiempo(matrizMTiempoAerea[idOrigen][cola.peek()]);
                 rAerea.setDistancia(matrizMDistanciaAerea[idOrigen][cola.peek()]);
                 ruta.add(rAerea);
             }
             else{
-                RutaTerrestre rTerrestre = new RutaTerrestre();
-                rTerrestre.setIdEstadoOrigen(idOrigen);
-                rTerrestre.setIdEstadoDestino(cola.peek());
+                RutaTerrestre rTerrestre = new RutaTerrestre(idOrigen, cola.peek());
                 rTerrestre.setTiempo(matrizMTiempo[idOrigen][cola.peek()]);
                 rTerrestre.setDistancia(matrizMDistancia[idOrigen][cola.peek()]);
                 ruta.add(rTerrestre);
@@ -204,42 +258,6 @@ public class Controller implements Initializable {
     }
 
 
-    private Queue<Integer> getRutaRapida(int[][] matrizT, int idOrigen, int idDestino){
-        Stack<Integer> pila = new Stack<>();
-        Stack<Integer> ruta = new Stack<>();
-        Queue<Integer> cola = new LinkedList<>();
-        int idTemporal = idOrigen;
-        int idDestinoO = idDestino;
-        boolean salir = false;
-        pila.push(idDestino);
-        ruta.push(idDestino);
-        while(!salir){
-            if(matrizT[idTemporal][idDestino] != 9999999){
-                pila.push(matrizT[idTemporal][idDestino]);
-                idDestino = matrizT[idTemporal][idDestino];
-            }
-            else{
-                idTemporal = idDestino;
-                if(!pila.isEmpty()) {
-                    if (idTemporal == idDestinoO){
-                        salir = true;
-                    }
-                    else{
-                        if(idTemporal == pila.peek()) {
-                            cola.add(pila.pop());
-                            idDestino = pila.peek();
-                        }
-                    }
-                }else salir =true;
-            }
-        }
-        ((LinkedList<Integer>) cola).addFirst(idOrigen);
-        ((LinkedList<Integer>) cola).addLast(idDestinoO);
-
-        imprimirCola(cola);
-
-        return cola;
-    }
 
     private static int[][] llenarMatriz99(){
         int[][] matrizT = new int[32][32];
