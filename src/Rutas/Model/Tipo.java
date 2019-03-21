@@ -2,7 +2,7 @@ package Rutas.Model;
 
 
 public enum Tipo {
-    CAMION(900,1200), AVION(7200,125);
+    CAMION(900,125), AVION(7200,1200);
 
 
     private final int costoHora;

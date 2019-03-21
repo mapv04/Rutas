@@ -27,7 +27,7 @@ public class RutaTerrestre extends Ruta {
 
     @Override
     public int getPrecio() {
-        return 1;
+        return super.precio;
     }
 
     @Override
@@ -64,6 +64,11 @@ public class RutaTerrestre extends Ruta {
         return super.distancia;
     }
 
+    @Override
+    public int getTiempoEnSegundos() {
+        return super.tiempo;
+    }
+
 
     @Override
     public void setTiempo(int tiempo) {
@@ -73,6 +78,11 @@ public class RutaTerrestre extends Ruta {
     @Override
     public void setDistancia(int distancia) {
         super.distancia = distancia;
+    }
+
+    @Override
+    public void setPrecio(int precio) {
+        super.precio = precio;
     }
 
 }

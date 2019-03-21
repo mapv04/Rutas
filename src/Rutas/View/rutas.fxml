@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.*?>
+<?import javafx.scene.paint.*?>
 <?import javafx.scene.text.*?>
 <?import javafx.scene.control.*?>
 <?import java.lang.*?>
@@ -25,7 +27,10 @@
                      <font>
                         <Font size="15.0" />
                      </font></Label>
-                  <Button layoutX="213.0" layoutY="424.0" mnemonicParsing="false" onAction="#onButtonBuscarClick" prefHeight="33.0" prefWidth="74.0" text="Buscar" />
+                  <Button layoutX="213.0" layoutY="424.0" mnemonicParsing="false" onAction="#onButtonBuscarClick" prefHeight="33.0" prefWidth="74.0" text="Buscar">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor></Button>
                   <RadioButton layoutX="34.0" layoutY="284.0" mnemonicParsing="false" text="Ruta mas corta">
                      <toggleGroup>
                         <ToggleGroup fx:id="group" />
@@ -40,7 +45,7 @@
             </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="545.0" prefWidth="617.0">
                <children>
-                  <TableView fx:id="table" prefHeight="545.0" prefWidth="626.0">
+                  <TableView fx:id="table" prefHeight="412.0" prefWidth="626.0">
                     <columns>
                       <TableColumn fx:id="columnRuta" prefWidth="117.0" text="Ruta" />
                         <TableColumn fx:id="columnEstado" prefWidth="105.0" text="Estado" />
@@ -50,6 +55,35 @@
                         <TableColumn fx:id="columnPrecio" prefWidth="104.0" text="Precio" />
                     </columns>
                   </TableView>
+                  <Label layoutX="14.0" layoutY="426.0" text="TOTAL">
+                     <font>
+                        <Font name="System Bold" size="20.0" />
+                     </font>
+                  </Label>
+                  <Label layoutX="14.0" layoutY="477.0" text="Transbordos: " />
+                  <Label layoutX="178.0" layoutY="477.0" text="Tiempo: " />
+                  <Label layoutX="322.0" layoutY="477.0" text="Precio: " />
+                  <Label layoutX="452.0" layoutY="477.0" text="Distancia: " />
+                  <Label fx:id="lblTransbordos" layoutX="86.0" layoutY="477.0" prefHeight="17.0" prefWidth="72.0" textFill="#1890e0">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="lblTiempo" layoutX="224.0" layoutY="477.0" prefHeight="17.0" prefWidth="72.0" textFill="#1890e0">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="lblPrecio" layoutX="361.0" layoutY="477.0" prefHeight="17.0" prefWidth="72.0" textFill="#1890e0">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="lblDistancia" layoutX="506.0" layoutY="477.0" prefHeight="17.0" prefWidth="72.0" textFill="#1890e0">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Label>
                </children></AnchorPane>
         </items>
       </SplitPane>
