@@ -82,7 +82,7 @@ public class Controller implements Initializable {
         matrizMPrecioA = hacerMatrizPrecio(matrizMPrecioA, Tipo.AVION);
 
         int[][] matrizMCombinadaPrecio = getMatrizMTiempo(ReadDatabase.getMatrizM(), 90);
-        matrizMCombinadaPrecio = combinarMatricesPrecio(MATRIZM_TIEMPO, MATRIZM_TIEMPO_AEREA, matrizMCombinadaPrecio);
+        matrizMCombinadaPrecio = combinarMatricesPrecio(matrizMPrecio, matrizMPrecioA, matrizMCombinadaPrecio);
         matrizTPrecio = llenarMatriz99();
         matrizTPrecio = floyd(matrizMCombinadaPrecio, matrizTPrecio);
 
@@ -141,16 +141,24 @@ public class Controller implements Initializable {
         if(table.getItems().size() > 0){
             table.getItems().clear();
         }
-        columnRuta.setCellValueFactory(new PropertyValueFactory<>("nombreRuta"));
-        columnEstado.setCellValueFactory(new PropertyValueFactory<>("nombreEstado"));
-        columnCapital.setCellValueFactory(new PropertyValueFactory<>("nombreCapital"));
-        columnPrecio.setCellValueFactory(new PropertyValueFactory<>("precio"));
-        columnTiempo.setCellValueFactory(new PropertyValueFactory<>("tiempo"));
-        columnDistancia.setCellValueFactory(new PropertyValueFactory<>("distancia"));
-        ObservableList<Ruta> rutaList = FXCollections.observableArrayList();
-        rutaList.addAll(ruta);
-        table.setItems(rutaList);
-        mostrarTotales(ruta);
+        if(ruta.get(0).getDistancia() != 9999999) {
+            columnRuta.setCellValueFactory(new PropertyValueFactory<>("nombreRuta"));
+            columnEstado.setCellValueFactory(new PropertyValueFactory<>("nombreEstado"));
+            columnCapital.setCellValueFactory(new PropertyValueFactory<>("nombreCapital"));
+            columnPrecio.setCellValueFactory(new PropertyValueFactory<>("precio"));
+            columnTiempo.setCellValueFactory(new PropertyValueFactory<>("tiempo"));
+            columnDistancia.setCellValueFactory(new PropertyValueFactory<>("distancia"));
+            ObservableList<Ruta> rutaList = FXCollections.observableArrayList();
+            rutaList.addAll(ruta);
+            table.setItems(rutaList);
+            mostrarTotales(ruta);
+        }
+        else{
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("ERROR");
+            alert.setHeaderText("No hay ruta ");
+            alert.showAndWait();
+        }
     }
     private void mostrarTotales(List<Ruta> ruta){
         int totalDistancia = 0;
@@ -378,8 +386,9 @@ public class Controller implements Initializable {
         for(int i =1;i<matriz.length;i++){
             for(int j =1; j<matriz.length;j++){
                 if(matriz[i][j] != 9999999) {
-                    int horas = matriz[i][j] / 3600;
-                    int minutos = ((matriz[i][j] - horas * 3600) / 60);
+                    int valor = matriz[i][j] - tipo.getTiempoEspera();
+                    int horas = valor / 3600;
+                    int minutos = ((valor - horas * 3600) / 60);
                     if (minutos >= 15)
                         horas++;
                     matriz[i][j] = horas * tipo.getCostoHora();
