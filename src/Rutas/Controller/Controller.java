@@ -51,7 +51,7 @@ public class Controller implements Initializable {
     private final int[][] MATRIZM_TIEMPO = getMatrizMTiempo(ReadDatabase.getMatrizM(), 90);
 
     private final int[][] MATRIZM_DISTANCIA_AEREA = ReadDatabase.getMatrizMAerea();
-    private final int[][] MATRIZM_TIEMPO_AEREA = getMatrizMTiempo(ReadDatabase.getMatrizMAerea(), 940);;
+    private final int[][] MATRIZM_TIEMPO_AEREA = getMatrizMTiempo(ReadDatabase.getMatrizMAerea(), 940);
 
     private int[][] matrizTCombinadaDistancia;
     private int[][] matrizTCombinadaTiempo;
@@ -182,7 +182,6 @@ public class Controller implements Initializable {
        Queue<Integer> cola = getTransbordos(idOrigen, idDestino, matrizTCombinada);
         ((LinkedList<Integer>) cola).addFirst(idOrigen);
         ((LinkedList<Integer>) cola).addLast(idDestino);
-        imprimirCola(cola);
         return armarRuta(cola,opcion);
     }
 
@@ -225,8 +224,8 @@ public class Controller implements Initializable {
                 RutaAerea rAerea = new RutaAerea(idOrigen, cola.peek());
                 rAerea.setTiempo(MATRIZM_TIEMPO_AEREA[idOrigen][cola.peek()]);
                 rAerea.setDistancia(MATRIZM_DISTANCIA_AEREA[idOrigen][cola.peek()]);
-                int horas = MATRIZM_TIEMPO_AEREA[idOrigen][cola.peek()] / 3600;
-                int minutos = ((MATRIZM_TIEMPO_AEREA[idOrigen][cola.peek()]-horas*3600)/60);
+                int horas = (MATRIZM_TIEMPO_AEREA[idOrigen][cola.peek()]-Tipo.AVION.getTiempoEspera()) / 3600;
+                int minutos = (((MATRIZM_TIEMPO_AEREA[idOrigen][cola.peek()]-Tipo.AVION.getTiempoEspera())-horas*3600)/60);
                 if(minutos >= 15)
                     horas++;
                 rAerea.setPrecio(Tipo.AVION.getCostoHora() * horas);
@@ -236,8 +235,8 @@ public class Controller implements Initializable {
                 RutaTerrestre rTerrestre = new RutaTerrestre(idOrigen, cola.peek());
                 rTerrestre.setTiempo(MATRIZM_TIEMPO[idOrigen][cola.peek()]);
                 rTerrestre.setDistancia(MATRIZM_DISTANCIA[idOrigen][cola.peek()]);
-                int horas = MATRIZM_TIEMPO[idOrigen][cola.peek()] / 3600;
-                int minutos = ((MATRIZM_TIEMPO[idOrigen][cola.peek()]-horas*3600)/60);
+                int horas = (MATRIZM_TIEMPO[idOrigen][cola.peek()]-Tipo.CAMION.getTiempoEspera()) / 3600;
+                int minutos = (((MATRIZM_TIEMPO[idOrigen][cola.peek()]-Tipo.CAMION.getTiempoEspera())-horas*3600)/60);
                 if(minutos >= 15)
                     horas ++;
                 rTerrestre.setPrecio(Tipo.CAMION.getCostoHora() * horas);
@@ -327,19 +326,13 @@ public class Controller implements Initializable {
 
     private static int convertirDistanciaSegundos(int distancia, int division){
         float tiempo = (float) distancia / division;
-        return (division == 940) ? Math.round( tiempo * 3600) + Tipo.AVION.getTiempo() : Math.round( tiempo * 3600) + Tipo.CAMION.getTiempo();
+        return (division == 940) ? Math.round( tiempo * 3600) + Tipo.AVION.getTiempoEspera() : Math.round( tiempo * 3600) + Tipo.CAMION.getTiempoEspera();
     }
 
     private static String convertirSegundosHoras(int tiempo){
         int horas = tiempo / 3600;
         int minutos = ((tiempo-horas*3600)/60);
         return horas+"h "+minutos+"min";
-    }
-
-    private static void imprimirCola(Queue<Integer> cola){
-        for(int i : cola){
-            System.out.println(i);
-        }
     }
 
     private static int[][] combinarMatrices(int[][] matrizTerrestre, int[][] matrizAerea, int[][] matrizNueva){

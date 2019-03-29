@@ -6,15 +6,15 @@ public enum Tipo {
 
 
     private final int costoHora;
-    private final int tiempo;
+    private final int tiempoEspera;
 
     Tipo(int tiempo, int costoHora){
-        this.tiempo = tiempo;
+        this.tiempoEspera = tiempo;
         this.costoHora = costoHora;
     }
 
 
-    public int getTiempo(){return tiempo;}
+    public int getTiempoEspera(){return tiempoEspera;}
     public int getCostoHora(){return costoHora;}
 
 }
